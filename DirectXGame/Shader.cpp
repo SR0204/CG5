@@ -71,7 +71,7 @@ void Shader::LoadDxc(const std::wstring& filePath, const std::wstring& shaderMod
 	shaderSourceBuffer.Encoding = DXC_CP_UTF8;
 
 	// 2Compileする
-	LPCUWSTR arguments[] = {
+	LPCWSTR arguments[] = {
 	    filePath.c_str(), // コンパイル対象のhlslファイル名
 	    L"-E",
 	    L"main", // エントリーポイントの指定
