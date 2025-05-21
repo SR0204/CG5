@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <string>
 
+// string→wstring
 std::wstring MiscUtility::ConvertString(const std::string& str) {
 
 	if (str.empty()) {
@@ -15,7 +16,7 @@ std::wstring MiscUtility::ConvertString(const std::string& str) {
 	MultiByteToWideChar(CP_UTF8, 0, reinterpret_cast<const char*>(&str[0]), static_cast<int>(str.size()), &result[0], sizeNeeded);
 	return result;
 }
-
+// wstring→string
 std::string MiscUtility::ConvertString(const std::wstring& str) {
 	if (str.empty()) {
 		return std::string();

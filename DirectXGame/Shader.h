@@ -1,9 +1,9 @@
 #pragma once
 
 #include <d3d12.h> //ID3DBlob
-#include <string>  //wstring,string
-#include<d3dcompiler.h>
-#include<dxcapi.h>
+#include <d3dcompiler.h>
+#include <dxcapi.h>
+#include <string> //wstring,string
 
 class Shader {
 
@@ -15,6 +15,8 @@ public:
 	// 生成したコンパイル済みデータを取得する
 	ID3DBlob* GetBlob();
 	IDxcBlob* GetDxcBlob();
+
+	
 
 	// コンストラクタ
 	Shader();

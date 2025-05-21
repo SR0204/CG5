@@ -1,6 +1,7 @@
 #include "Shader.h"
+#include "MiscUtility.h"
 #include <cassert>       //assert
-#include <d3dcompiler.h> //D3DCompileFromFile]
+#include <d3dcompiler.h> //D3DCompileFromFile
 #include <dxcapi.h>
 #pragma comment(lib, "dxcompiler.lib")
 
@@ -8,7 +9,7 @@
 void Shader::Load(const std::wstring& filePath, const std::wstring& shaderModel) {
 
 	// wstring→string文字列変換
-	std::string mbShaderModel;
+	std::string mbShaderModel = MiscUtility::ConvertString(shaderModel);
 
 	//----------------------------------シェーダーコンパイル関数-----------------------------
 	// filePath    : シェーダーファイルのパス　　例 L"Resources/shaders/TestVS.hlsl"
@@ -94,14 +95,32 @@ void Shader::LoadDxc(const std::wstring& filePath, const std::wstring& shaderMod
 	// コンパイルエラーではなくdxcが起動できないなど致命的な状況
 	assert(SUCCEEDED(hr));
 
-	//3.警告エラーが出ていないか確認する
+	// 3.警告エラーが出ていないか確認する
 	IDxcBlobUtf8* shaderError = nullptr;
 	IDxcBlobWide* nameBlob = nullptr;
+
+	shaderResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&shaderError), &nameBlob);
+	if (shaderError != nullptr && shaderError->GetStringLength() != 0) {
+		OutputDebugStringA(shaderError->GetStringPointer());
+		assert(false);
+	}
+
+	// 4.Compile結果を受け取る
+	IDxcBlob* shaderBlob = nullptr;
+	hr = shaderResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(&shaderBlob), &nameBlob);
+	assert(SUCCEEDED(hr));
+
+	// もう使わないリソースを解放
+	shaderSource->Release();
+	shaderResult->Release();
+
+	// 実行用のバイナリを取っておく
+	dxcBlob_ = shaderBlob;
 }
 
 ID3DBlob* Shader::GetBlob() { return blob_; }
 
-IDxcBlob* Shader::GetDxcBlob() { return nullptr; }
+IDxcBlob* Shader::GetDxcBlob() { return dxcBlob_; }
 
 Shader::Shader() {}
 
@@ -109,5 +128,9 @@ Shader::~Shader() {
 	if (blob_ != nullptr) {
 		blob_->Release();
 		blob_ = nullptr;
+	}
+	if (dxcBlob_ != nullptr) {
+		dxcBlob_->Release();
+		dxcBlob_ = nullptr;
 	}
 }
