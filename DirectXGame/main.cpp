@@ -109,7 +109,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// 0.RenderTextureResourceの作成
 
 	// 画面クリア色　※わかりやすいように赤とする
-	const FLOAT kRenderTargetClearColor[4] = {1.0f, 1.0f, 0.0f, 1.0f};
+	const FLOAT kRenderTargetClearColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
 
 	ID3D12Resource* renderTextureReosouce = CreateRenderTextureResource(device, WinApp::kWindowWidth, WinApp::kWindowHeight, DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, kRenderTargetClearColor);
 
