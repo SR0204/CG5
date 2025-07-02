@@ -4,6 +4,7 @@
 #include "RootSignature.h"
 #include "Shader.h"
 #include "VertexBuffer.h"
+#include "WorldTransformEx.h"
 #include <Windows.h>
 
 using namespace KamataEngine;
@@ -190,6 +191,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	    srvHandleCPU           // SRV用のディスクリプタヒープのCPU Handle
 	);
 
+	// アプリで利用する3Dモデル
+	// 被写体の準備
+	Model* model = Model::CreateFromOBJ("terrain");
+
+	WorldTransformEx worldTransform;
+	worldTransform.Initialize();
+	worldTransform.scale_ = Vector3(1.0f, 1.0f, 1.0f);
+
+	// カメラの準備
+	Camera camera;
+	camera.Initialize();
+	camera.translation_ = Vector3(0.0f, 1.0f, 0.0f);
+
 	// 更新処理
 	while (true) {
 		// エンジンの更新
@@ -197,7 +211,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 
-		
+		// world変換行列の定数バッファへの転送
+		worldTransform.rotation_.y += 0.005f;
+		worldTransform.UpdateMatrix();
+
+		// cameraの更新と定数バッファへの転送
+		camera.UpdateMatrix();
 
 		// ここに描画処理を書く
 
@@ -240,6 +259,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		commandList->ClearDepthStencilView(dsvHandleCPU, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
 		// 描画
+		Model::PreDraw(commandList);
+		model->Draw(worldTransform, camera);
+		Model::PostDraw();
 
 		// TransitionBarrierをもとに戻し、PixelShaderが扱えるようにする
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;                      // TranslationBarrierの設定
@@ -259,11 +281,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		commandList->IASetIndexBuffer(ib.GetView());
 		// トロポジの設定
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		
-		//使用するディスクリプタヒープの設定
+
+		// 使用するディスクリプタヒープの設定
 		commandList->SetDescriptorHeaps(srvDescriptorHeap->GetDesc().NumDescriptors, &srvDescriptorHeap);
 
-		//SRVのDescripterTableの先頭の設定
+		// SRVのDescripterTableの先頭の設定
 		commandList->SetGraphicsRootDescriptorTable(0, srvHandleGPU);
 
 		commandList->DrawIndexedInstanced(_countof(indices), 1, 0, 0, 0);
@@ -272,6 +294,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	}
 
 	// 解放
+	delete model;
+
 	renderTextureReosouce->Release();
 	srvDescriptorHeap->Release();
 	rtvDescriptorHeap->Release();
